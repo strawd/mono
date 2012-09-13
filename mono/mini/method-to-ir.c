@@ -5647,14 +5647,8 @@ is_supported_tail_call (MonoCompile *cfg, MonoMethod *method, MonoMethod *cmetho
 	/* Debugging support */
 #if 0
 	if (supported_tail_call) {
-		static int count = 0;
-		count ++;
-		if (getenv ("COUNT")) {
-			if (count == atoi (getenv ("COUNT")))
-				printf ("LAST: %s\n", mono_method_full_name (cmethod, TRUE));
-			if (count > atoi (getenv ("COUNT")))
-				supported_tail_call = FALSE;
-		}
+		if (!mono_debug_count ())
+			supported_tail_call = FALSE;
 	}
 #endif
 
@@ -9778,6 +9772,9 @@ mono_method_to_ir (MonoCompile *cfg, MonoMethod *method, MonoBasicBlock *start_b
 			start_new_bblock = 1;
 			break;
 		case CEE_ENDFINALLY:
+			/* mono_save_seq_point_info () depends on this */
+			if (sp != stack_start)
+				emit_seq_point (cfg, method, ip, FALSE);
 			MONO_INST_NEW (cfg, ins, OP_ENDFINALLY);
 			MONO_ADD_INS (bblock, ins);
 			ip++;
