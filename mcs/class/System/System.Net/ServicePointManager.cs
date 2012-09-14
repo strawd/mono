@@ -494,12 +494,15 @@ namespace System.Net
 						// to the .NET 2 callback for values like SecTrustResult.Confirm
 						result = (trustResult == MSX.OSX509Certificates.SecTrustResult.Proceed ||
 								  trustResult == MSX.OSX509Certificates.SecTrustResult.Unspecified);
-
 					} catch {
 						// Ignore
 					}
 					
-					if (!result) {
+					if (result) {
+						// TrustEvaluateSsl was successful so there's no trust error
+						// IOW we discard our own chain (since we trust OSX one instead)
+						errors = 0;
+					} else {
 						// callback and DefaultCertificatePolicy needs this since 'result' is not specified
 						status11 = (int) trustResult;
 						errors |= SslPolicyErrors.RemoteCertificateChainErrors;
@@ -510,6 +513,13 @@ namespace System.Net
 
 #if MONODROID
 				result = AndroidPlatform.TrustEvaluateSsl (certs, sender, leaf, chain, errors);
+				if (result) {
+					// chain.Build() + GetErrorsFromChain() (above) will ALWAYS fail on
+					// Android (there are no mozroots or preinstalled root certificates),
+					// thus `errors` will ALWAYS have RemoteCertificateChainErrors.
+					// Android just verified the chain; clear RemoteCertificateChainErrors.
+					errors  &= ~SslPolicyErrors.RemoteCertificateChainErrors;
+				}
 #endif
 
 				if (policy != null && (!(policy is DefaultCertificatePolicy) || cb == null)) {

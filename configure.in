@@ -1132,12 +1132,7 @@ if test x$target_win32 = xno; then
 			/* Lifted this compile time assert method from: http://www.jaggersoft.com/pubs/CVu11_3.html */
 			#define COMPILE_TIME_ASSERT(pred) \
 				switch(0){case 0:case pred:;}
-
-			int main(void)
-			{
-				COMPILE_TIME_ASSERT(sizeof(off_t) * CHAR_BIT == 64);
-				return 0;
-			}
+			COMPILE_TIME_ASSERT(sizeof(off_t) * CHAR_BIT == 64);
 		], [
 			AC_MSG_RESULT(ok)
 			AC_DEFINE(HAVE_LARGE_FILE_SUPPORT, 1, [Have large file support])
@@ -2886,7 +2881,7 @@ fi
 # When --disable-shared is used, libtool transforms libmono-2.0.la into libmono-2.0.so
 # instead of libmono-static.a
 if test "x$enable_shared" = "xno"; then
-   LIBMONO_LA=.libs/libmono-static.a
+   LIBMONO_LA=libmini-static.la
 else
    LIBMONO_LA=libmono-$API_VER.la
 fi
